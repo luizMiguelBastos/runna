@@ -1,5 +1,6 @@
-package com.luizMiguel.runna.user;
+package com.luizMiguel.runna.Repositorys;
 
+import com.luizMiguel.runna.Models.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.luizMiguel.runna.user;
+package com.luizMiguel.runna.Models;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
