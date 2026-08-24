@@ -17,22 +17,30 @@ public class ExerciseModel {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private enum ExerciseType {
-        BIKE,
-        RUNNING,
-        WALKING
-    }
-    private ExerciseType tipo;
+
+    private enum ExerciseType {BIKE, RUNNING, WALKING}
+
+    @Enumerated(EnumType.STRING)
+    private ExerciseType type;
+
+
     private Duration duration;
     private double distanceInKm;
+    private Duration pace;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserModel user;
 
-    public Duration calcularPace() {
-        return duration.dividedBy((long) distanceInKm);
+    public void paceCalc() {
+        if (distanceInKm <= 0) {
+            throw new IllegalArgumentException("Distance must be greater than zero!");
+        }
+
+        long seconds = duration.toSeconds();
+        long paceEmSegundos = Math.round(seconds / distanceInKm);
+
+        this.pace = Duration.ofSeconds(paceEmSegundos);
     }
 
 }
-
