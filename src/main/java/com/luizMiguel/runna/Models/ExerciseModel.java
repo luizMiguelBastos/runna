@@ -3,8 +3,11 @@ package com.luizMiguel.runna.Models;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -27,6 +30,8 @@ public class ExerciseModel {
     private Duration duration;
     private double distanceInKm;
     private Duration pace;
+    @CreationTimestamp
+    private Instant createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
