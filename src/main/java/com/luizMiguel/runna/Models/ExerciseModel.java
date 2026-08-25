@@ -21,7 +21,7 @@ public class ExerciseModel {
     private UUID id;
 
 
-    private enum ExerciseType {BIKE, RUNNING, WALKING}
+    public enum ExerciseType {BIKE, RUNNING, WALKING}
 
     @Enumerated(EnumType.STRING)
     private ExerciseType type;

@@ -1,4 +1,4 @@
-package com.luizMiguel.runna.Repositorys;
+package com.luizMiguel.runna.Repositories;
 
 import com.luizMiguel.runna.Models.ExerciseModel;
 import org.springframework.data.jpa.repository.JpaRepository;
