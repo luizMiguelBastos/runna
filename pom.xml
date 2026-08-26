@@ -50,7 +50,13 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
-
+		<!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.13.0</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-jackson</artifactId>
