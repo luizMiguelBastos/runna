@@ -1,4 +1,4 @@
-package com.luizMiguel.runna.Services;
+package com.luizMiguel.runna.Security;
 
 import com.luizMiguel.runna.Models.UserModel;
 import io.jsonwebtoken.Jwts;
