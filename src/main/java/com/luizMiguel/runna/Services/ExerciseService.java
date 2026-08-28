@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 public class ExerciseService {
 
-    public enum Ordenacao { NEWEST, OLDEST, BEST_PACE, LONGEST_DISNTACE}
+    public enum Ordenacao { NEWEST, OLDEST, BEST_PACE, LONGEST_DISTNACE}
 
     private final ExcerciseRepository exerciseRepository;
     private final UserRepository userRepository;
@@ -29,7 +29,7 @@ public class ExerciseService {
     }
 
     @Transactional
-    public ExerciseResponse criar(UUID userId, CreateExerciseRequest request) {
+    public ExerciseResponse createExercise(UUID userId, CreateExerciseRequest request) {
         UserModel user = userRepository.getReferenceById(userId);
 
         ExerciseModel exercise = new ExerciseModel();
@@ -43,19 +43,19 @@ public class ExerciseService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseResponse> listar(UUID userId, Ordenacao ordem) {
+    public List<ExerciseResponse> listExercises(UUID userId, Ordenacao ordem) {
         List<ExerciseModel> exercises = switch (ordem) {
             case NEWEST        -> exerciseRepository.findAllByUser_IdOrderByCreatedAtDesc(userId);
             case OLDEST         -> exerciseRepository.findAllByUser_IdOrderByCreatedAtAsc(userId);
             case BEST_PACE     -> exerciseRepository.findAllByUser_IdOrderByPaceAsc(userId);
-            case LONGEST_DISNTACE -> exerciseRepository.findAllByUser_IdOrderByDistanceInKmDesc(userId);
+            case LONGEST_DISTNACE -> exerciseRepository.findAllByUser_IdOrderByDistanceInKmDesc(userId);
         };
 
         return exercises.stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
-    public ExerciseResponse buscar(UUID userId, UUID exerciseId) {
+    public ExerciseResponse search(UUID userId, UUID exerciseId) {
         return exerciseRepository.findByIdAndUser_Id(exerciseId, userId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -63,7 +63,7 @@ public class ExerciseService {
     }
 
     @Transactional
-    public void deletar(UUID userId, UUID exerciseId) {
+    public void delete(UUID userId, UUID exerciseId) {
         ExerciseModel exercise = exerciseRepository.findByIdAndUser_Id(exerciseId, userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Exercise not found"));;
