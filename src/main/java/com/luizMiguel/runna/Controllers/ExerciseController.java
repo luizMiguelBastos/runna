@@ -33,4 +33,16 @@ public class ExerciseController {
         return exerciseService.listExercises(userId, ordem);
     }
 
+    @GetMapping("/{id}")
+    public ExerciseResponse search (@AuthenticationPrincipal UUID userId, @PathVariable UUID id){
+        return exerciseService.search(userId, id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete (@AuthenticationPrincipal UUID userId, @PathVariable UUID id){
+        exerciseService.delete(userId, id);
+    }
+
+
+
 }
