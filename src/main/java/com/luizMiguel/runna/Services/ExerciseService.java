@@ -39,7 +39,7 @@ public class ExerciseService {
         exercise.setDistanceInKm(request.distanceInKm());
         exercise.paceCalc();
 
-        return toResponse(exerciseRepository.save(exercise));
+        return toResponse(exerciseRepository.saveAndFlush(exercise));
     }
 
     @Transactional(readOnly = true)
