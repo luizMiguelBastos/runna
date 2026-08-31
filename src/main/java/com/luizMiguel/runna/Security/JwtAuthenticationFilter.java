@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-        System.out.println(">>> passei no filtro: " + request.getRequestURI());
+        System.out.println(request.getRequestURI());
 
         final String authHeader = request.getHeader("Authorization");
         final String token;
