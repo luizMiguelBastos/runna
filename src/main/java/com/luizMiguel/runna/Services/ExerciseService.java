@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 public class ExerciseService {
 
-    public enum Ordenacao { NEWEST, OLDEST, BEST_PACE, LONGEST_DISTNACE}
+    public enum OrderBy { NEWEST, OLDEST, BEST_PACE, LONGEST_DISTANCE}
 
     private final ExcerciseRepository exerciseRepository;
     private final UserRepository userRepository;
@@ -43,12 +43,12 @@ public class ExerciseService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseResponse> listExercises(UUID userId, Ordenacao ordem) {
-        List<ExerciseModel> exercises = switch (ordem) {
+    public List<ExerciseResponse> listExercises(UUID userId, OrderBy order) {
+        List<ExerciseModel> exercises = switch (order) {
             case NEWEST        -> exerciseRepository.findAllByUser_IdOrderByCreatedAtDesc(userId);
             case OLDEST         -> exerciseRepository.findAllByUser_IdOrderByCreatedAtAsc(userId);
             case BEST_PACE     -> exerciseRepository.findAllByUser_IdOrderByPaceAsc(userId);
-            case LONGEST_DISTNACE -> exerciseRepository.findAllByUser_IdOrderByDistanceInKmDesc(userId);
+            case LONGEST_DISTANCE -> exerciseRepository.findAllByUser_IdOrderByDistanceInKmDesc(userId);
         };
 
         return exercises.stream().map(this::toResponse).toList();

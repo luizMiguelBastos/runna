@@ -26,7 +26,7 @@ public class ExerciseController {
     }
 
     @GetMapping
-    public List<ExerciseResponse> list (@AuthenticationPrincipal UUID userId, @RequestParam(defaultValue = "NEWEST") ExerciseService.Ordenacao ordem){
+    public List<ExerciseResponse> list (@AuthenticationPrincipal UUID userId, @RequestParam(defaultValue = "NEWEST") ExerciseService.OrderBy ordem){
         return exerciseService.listExercises(userId, ordem);
     }
 

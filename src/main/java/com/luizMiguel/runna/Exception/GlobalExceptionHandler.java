@@ -1,5 +1,6 @@
 package com.luizMiguel.runna.Exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,5 +16,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(e.getStatusCode())
                 .body(Map.of("message", e.getReason()));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handle(InvalidCredentialsException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", e.getMessage()));
     }
 }
