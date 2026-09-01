@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -21,7 +20,7 @@ public class ExerciseModel {
     private UUID id;
 
 
-    public enum ExerciseType {BIKE, RUNNING, WALKING}
+    public enum ExerciseType {BIKE, RUN, WALK}
 
     @Enumerated(EnumType.STRING)
     private ExerciseType type;

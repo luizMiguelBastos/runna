@@ -1,10 +1,14 @@
 package com.luizMiguel.runna.DTOs.Exercise;
 
 import com.luizMiguel.runna.Models.ExerciseModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.time.Duration;
 
-public record CreateExerciseRequest (@NotNull ExerciseModel.ExerciseType type, @NotNull Duration duration, @Positive double distanceInKm) {
+public record CreateExerciseRequest(
+        @NotNull ExerciseModel.ExerciseType type,
+        @NotNull @Schema(type = "string", example = "PT30M") Duration duration,
+        @Positive double distanceInKm) {
 }
