@@ -13,7 +13,7 @@ import java.util.UUID;
 @RequestMapping("/exercises")
 public class ExerciseController {
 
-    public final ExerciseService exerciseService;
+    private final ExerciseService exerciseService;
 
 
     public ExerciseController(ExerciseService exerciseService) {
@@ -26,8 +26,8 @@ public class ExerciseController {
     }
 
     @GetMapping
-    public List<ExerciseResponse> list (@AuthenticationPrincipal UUID userId, @RequestParam(defaultValue = "NEWEST") ExerciseService.OrderBy ordem){
-        return exerciseService.listExercises(userId, ordem);
+    public List<ExerciseResponse> list (@AuthenticationPrincipal UUID userId, @RequestParam(defaultValue = "NEWEST") ExerciseService.OrderBy order){
+        return exerciseService.listExercises(userId, order);
     }
 
     @GetMapping("/{id}")
