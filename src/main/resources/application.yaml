@@ -2,11 +2,12 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 3600000
   issuer: runna-api
-
+server:
+  port: ${PORT:8080}
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/runna
-    username: postgres
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:

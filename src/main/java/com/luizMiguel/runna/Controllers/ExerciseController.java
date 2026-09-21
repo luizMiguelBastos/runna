@@ -22,7 +22,7 @@ public class ExerciseController {
 
     @PostMapping
     public ExerciseResponse create (@RequestBody CreateExerciseRequest createExercise, @AuthenticationPrincipal UUID userID){
-        return exerciseService.createExercise(userID, createExercise);
+        . exerciseService.createExercise(userID, createExercise);
     }
 
     @GetMapping
