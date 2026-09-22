@@ -2,6 +2,8 @@
 
 API REST para registro e acompanhamento de exercícios físicos (corrida, caminhada e bike), com autenticação JWT stateless. Cada usuário acessa apenas os próprios treinos, e o pace é calculado automaticamente a partir da duração e da distância.
 
+🔗 API no ar: https://runna.onrender.com/swagger-ui/index.html
+
 ## Stack
 
 - **Java 25** / **Spring Boot 4.1**
