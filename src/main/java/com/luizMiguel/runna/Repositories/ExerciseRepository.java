@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ExcerciseRepository extends JpaRepository<ExerciseModel, UUID> {
+public interface ExerciseRepository extends JpaRepository<ExerciseModel, UUID> {
 
     List<ExerciseModel> findAllByUser_IdOrderByCreatedAtDesc(UUID userId);
 

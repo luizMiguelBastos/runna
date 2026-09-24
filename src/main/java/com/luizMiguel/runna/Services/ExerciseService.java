@@ -4,7 +4,7 @@ import com.luizMiguel.runna.DTOs.Exercise.CreateExerciseRequest;
 import com.luizMiguel.runna.DTOs.Exercise.ExerciseResponse;
 import com.luizMiguel.runna.Models.ExerciseModel;
 import com.luizMiguel.runna.Models.UserModel;
-import com.luizMiguel.runna.Repositories.ExcerciseRepository;
+import com.luizMiguel.runna.Repositories.ExerciseRepository;
 import com.luizMiguel.runna.Repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +19,10 @@ public class ExerciseService {
 
     public enum OrderBy { NEWEST, OLDEST, BEST_PACE, LONGEST_DISTANCE}
 
-    private final ExcerciseRepository exerciseRepository;
+    private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
 
-    public ExerciseService(ExcerciseRepository exerciseRepository,
+    public ExerciseService(ExerciseRepository exerciseRepository,
                            UserRepository userRepository) {
         this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
