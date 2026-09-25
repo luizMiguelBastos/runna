@@ -1,11 +1,17 @@
 package com.luizMiguel.runna.User;
 
+import com.luizMiguel.runna.DTOs.User.UserResponse;
 import com.luizMiguel.runna.Exception.InvalidCredentialsException;
+import com.luizMiguel.runna.Models.ExerciseModel;
 import com.luizMiguel.runna.Models.UserModel;
 import com.luizMiguel.runna.Repositories.UserRepository;
+import com.luizMiguel.runna.Services.ExerciseService;
 import com.luizMiguel.runna.Services.UserService;
+import org.apache.catalina.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,6 +22,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,6 +64,23 @@ public class UserServiceTest {
         when(passwordEncoder.matches(password, user.getPassword())).thenReturn(true);
         assertEquals(user, userService.userLogin(username, password));
     }
+
+    @Captor
+    ArgumentCaptor<UserModel> capturadorDeUsuario;
+
+    @Test
+    void deveSalvarSenhaHasheada(){
+        String username = "miguel";
+        String password = "miguel123";
+
+        when(passwordEncoder.encode(password)).thenReturn("hash-falso");
+        when(userRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        userService.createUser(username,password);
+        verify(userRepository).save(capturadorDeUsuario.capture());
+        assertEquals("hash-falso", capturadorDeUsuario.getValue().getPassword());
+    }
+
+
 
 
 }

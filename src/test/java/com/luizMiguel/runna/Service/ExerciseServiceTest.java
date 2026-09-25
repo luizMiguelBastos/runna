@@ -10,6 +10,8 @@ import com.luizMiguel.runna.Services.ExerciseService;
 import org.apache.catalina.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,6 +24,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,5 +63,20 @@ public class ExerciseServiceTest {
 
         when(exerciseRepository.findByIdAndUser_Id(exerciseId,userId)).thenReturn(Optional.empty());
         assertThrows(ResponseStatusException.class, () -> exerciseService.search(userId,exerciseId));
+    }
+
+
+    @Test
+    void deveDeletarExercicioDoUsuario(){
+        ExerciseModel exerciseModel = new ExerciseModel();
+        UUID userId = UUID.randomUUID();
+        UUID exerciseId = UUID.randomUUID();
+
+        when(exerciseRepository.findByIdAndUser_Id(exerciseId, userId)).thenReturn(Optional.of(exerciseModel));
+        exerciseService.delete(userId, exerciseId);
+        verify(exerciseRepository).delete(exerciseModel);
+
+
+
     }
 }
