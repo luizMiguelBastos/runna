@@ -29,7 +29,7 @@ public class UserService {
 
  }
 
-    public UserModel userLogin(String username, String password) {
+    public UserModel userValidation(String username, String password) {
 
         UserModel user = userRepository.findByUsername(username)
                 .orElseThrow(() ->

@@ -18,7 +18,7 @@ public class AuthService {
     }
 
     public LoginResponse login(String username, String password){
-        UserModel user = userService.userLogin(username, password);
+        UserModel user = userService.userValidation(username, password);
         String token = jwtService.createToken(user);
 
         return new LoginResponse(token);

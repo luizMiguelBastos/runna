@@ -1,13 +1,9 @@
 package com.luizMiguel.runna.User;
 
-import com.luizMiguel.runna.DTOs.User.UserResponse;
 import com.luizMiguel.runna.Exception.InvalidCredentialsException;
-import com.luizMiguel.runna.Models.ExerciseModel;
 import com.luizMiguel.runna.Models.UserModel;
 import com.luizMiguel.runna.Repositories.UserRepository;
-import com.luizMiguel.runna.Services.ExerciseService;
 import com.luizMiguel.runna.Services.UserService;
-import org.apache.catalina.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,7 +37,7 @@ public class UserServiceTest {
     void usernameInexistente(){
         String username = "miguel";
         when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
-        assertThrows(InvalidCredentialsException.class, () -> userService.userLogin(username, null));
+        assertThrows(InvalidCredentialsException.class, () -> userService.userValidation(username, null));
     }
 
     @Test
@@ -52,7 +47,7 @@ public class UserServiceTest {
         String password = "miguel123";
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPassword())).thenReturn(false);
-        assertThrows(InvalidCredentialsException.class, () -> userService.userLogin(username,password));
+        assertThrows(InvalidCredentialsException.class, () -> userService.userValidation(username,password));
     }
 
     @Test
@@ -62,7 +57,7 @@ public class UserServiceTest {
         String password = "miguel123";
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(password, user.getPassword())).thenReturn(true);
-        assertEquals(user, userService.userLogin(username, password));
+        assertEquals(user, userService.userValidation(username, password));
     }
 
     @Captor
