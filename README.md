@@ -13,6 +13,8 @@ API REST para registro e acompanhamento de exercícios físicos (corrida, caminh
 - **jjwt 0.12** — emissão e validação de tokens
 - **Bean Validation** — validação dos payloads de entrada
 - **springdoc-openapi (Swagger UI)** — documentação interativa
+- **Spring AI 2.0**: integração com o modelo de linguagem e saída estruturada
+- **Ollama** (modelo `llama3.2`): IA rodando localmente para gerar os planos de treino
 
 ## Como rodar
 
@@ -41,6 +43,16 @@ O `JWT_SECRET` precisa ter no mínimo 32 bytes — HS256 exige uma chave de 256 
 
 O Hibernate cria as tabelas automaticamente (`ddl-auto: update`). A API sobe em `http://localhost:8080`.
 
+**4. (Opcional) Suba a IA local para o plano de treino:**
+
+Instale o [Ollama](https://ollama.com/download) e baixe o modelo usado pela aplicação:
+
+```bash
+ollama pull llama3.2
+```
+
+O Ollama atende em `http://localhost:11434`, endereço já configurado no `application.yaml`. Sem ele a API sobe normalmente; só o `POST /exercises/plan` deixa de funcionar.
+
 ## Documentação interativa
 
 Com a aplicação no ar, a interface do Swagger fica disponível em:
@@ -61,6 +73,7 @@ Para testar as rotas protegidas: crie um usuário, faça login, copie o token re
 | `GET` | `/exercises` | Bearer | Lista os exercícios do usuário |
 | `GET` | `/exercises/{id}` | Bearer | Busca um exercício específico |
 | `DELETE` | `/exercises/{id}` | Bearer | Remove um exercício |
+| `POST` | `/exercises/plan` | Bearer | Gera um plano de treino com IA (somente local) |
 
 ### Ordenação da listagem
 
@@ -94,6 +107,47 @@ curl -X POST http://localhost:8080/exercises \
 ```
 
 Os campos `duration` e `pace` usam o formato ISO-8601 de duração: `PT30M` são 30 minutos, `PT1H15M` são 1h15.
+
+## Plano de treino com IA
+
+`POST /exercises/plan` monta um plano semanal para o usuário chegar a uma meta de distância, levando em conta os treinos que ele registrou nas últimas 4 semanas.
+
+> ⚠️ Esse endpoint funciona apenas localmente. Ele depende do Ollama rodando na mesma máquina, por isso **não está disponível na versão hospedada no Render**.
+
+```bash
+curl -X POST http://localhost:8080/exercises/plan \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"type":"RUN","targetDistanceKm":5,"weeks":4}'
+```
+
+`weeks` aceita de 1 a 16 e `targetDistanceKm` precisa ser positivo. Valores fora disso retornam `400` com a mensagem de cada campo inválido.
+
+Trecho de uma resposta real, para um usuário que tinha 3 corridas registradas:
+
+```json
+{
+  "goal": "Correr 5.0 km em 4 semanas",
+  "weeks": [
+    {
+      "week": 1,
+      "sessions": [
+        { "type": "RUN", "targetDistanceKm": 4.5, "targetPace": "6:45", "observation": "Treino de condicionamento" },
+        { "type": "WALK", "targetDistanceKm": 1.5, "targetPace": "", "observation": "Recuperação" }
+      ]
+    },
+    {
+      "week": 2,
+      "sessions": [
+        { "type": "RUN", "targetDistanceKm": 3.8, "targetPace": "6:50", "observation": "Treino de condicionamento" },
+        { "type": "WALK", "targetDistanceKm": 1.2, "targetPace": "", "observation": "Treino de condicionamento" }
+      ]
+    }
+  ]
+}
+```
+
+Como o plano é gerado por um modelo de linguagem, o conteúdo varia entre chamadas. O que não varia são as regras aplicadas em código, descritas abaixo.
 
 ## Decisões de arquitetura
 
@@ -137,6 +191,16 @@ Quando o recurso existe mas pertence a outra pessoa, a API responde `404` em vez
 Um `@RestControllerAdvice` traduz as exceptions em respostas HTTP, mantendo um formato único de erro em toda a API e evitando que detalhes internos vazem para o cliente.
 
 Credenciais inválidas retornam a **mesma mensagem** tanto para usuário inexistente quanto para senha errada — mensagens distintas permitiriam enumerar quais usernames existem na base.
+
+### Plano de treino com IA
+
+**Números calculados em Java.** O `PlanService` calcula o nível do usuário (quantidade de treinos, treinos por semana, maior distância e pace médio das últimas 4 semanas) no record `UserLevel` e envia esses valores prontos no prompt. Modelos de linguagem erram contas com facilidade, então a IA recebe os números em vez de calculá-los.
+
+**Saída estruturada em records.** A resposta da IA é convertida direto para `TrainingPlanResponse`, `PlanWeek` e `PlannedSession` pelo Spring AI. O endpoint devolve um JSON com formato fixo, e não texto livre que o cliente precisaria interpretar.
+
+**Progressão de 10% validada em código.** O prompt pede que o treino mais longo não cresça mais de 10% de uma semana para a outra, mas a IA não garante isso. Depois da resposta, `enforceWeeklyProgression` aplica a regra: se o treino mais longo de uma semana passar de 10% acima do mais longo da semana anterior, a distância é reduzida para o limite, arredondada para baixo em uma casa decimal. A semana 1 é comparada com a maior distância do histórico do usuário; para quem não tem treinos do tipo nas últimas 4 semanas, ela não é limitada. Sessões sem distância são removidas.
+
+**Regra testada isoladamente.** Como `enforceWeeklyProgression` não depende da IA, ela é coberta por testes JUnit no `PlanServiceTest`: semana acima do limite é cortada, semana dentro do limite não muda, iniciante não tem a semana 1 limitada e sessão com 0 km é removida.
 
 ## Próximos passos
 
