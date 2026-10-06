@@ -32,7 +32,16 @@ public class PlanService {
                 .build();
     }
 
-    private String describeLevel(UUID userId, ExerciseModel.ExerciseType type) {
+    public record UserLevel(int sessions, double sessionsPerWeek, double maxDistanceKm, long avgPaceSeconds) {
+
+        public static final UserLevel BEGINNER = new UserLevel(0, 0, 0, 0);
+
+        public boolean isBeginner() {
+            return sessions == 0;
+        }
+    }
+
+    private UserLevel calculateLevel(UUID userId, ExerciseModel.ExerciseType type) {
         Instant since = Instant.now().minus(Duration.ofDays(28));
 
         List<ExerciseModel> recent = exerciseRepository.findAllByUser_IdOrderByCreatedAtDesc(userId)
@@ -42,7 +51,7 @@ public class PlanService {
                 .toList();
 
         if (recent.isEmpty()) {
-            return "Usuário iniciante, sem treinos desse tipo nas últimas 4 semanas.";
+            return UserLevel.BEGINNER;
         }
 
         double maxDistance = recent.stream()
@@ -55,14 +64,22 @@ public class PlanService {
                 .average()
                 .orElse(0));
 
-        double perWeek = recent.size() / 4.0;
+        return new UserLevel(recent.size(), recent.size() / 4.0, maxDistance, avgPaceSeconds);
+    }
+
+    private String levelToPrompt(UserLevel level) {
+        if (level.isBeginner()) {
+            return "Usuário iniciante, sem treinos desse tipo nas últimas 4 semanas.";
+        }
 
         return "Últimas 4 semanas: %d treinos (%.1f por semana), maior distância %.1f km, pace médio %d:%02d/km."
-                .formatted(recent.size(), perWeek, maxDistance, avgPaceSeconds / 60, avgPaceSeconds % 60);
+                .formatted(level.sessions(), level.sessionsPerWeek(), level.maxDistanceKm(),
+                        level.avgPaceSeconds() / 60, level.avgPaceSeconds() % 60);
     }
 
     public TrainingPlanResponse generatePlan(UUID userId, CreatePlanRequest request) {
-        String level = describeLevel(userId, request.type());
+        UserLevel userLevel = calculateLevel(userId, request.type());
+        String level = levelToPrompt(userLevel);
 
         return chatClient.prompt()
                 .user(u -> u.text("""
