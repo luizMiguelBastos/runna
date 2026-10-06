@@ -1,14 +1,19 @@
 package com.luizMiguel.runna.Services;
 
 import com.luizMiguel.runna.DTOs.Exercise.CreatePlanRequest;
+import com.luizMiguel.runna.DTOs.Plan.PlanWeek;
+import com.luizMiguel.runna.DTOs.Plan.PlannedSession;
 import com.luizMiguel.runna.DTOs.Plan.TrainingPlanResponse;
 import com.luizMiguel.runna.Models.ExerciseModel;
 import com.luizMiguel.runna.Repositories.ExerciseRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +26,8 @@ public class PlanService {
             Nunca aumente a distância do treino mais longo em mais de 10% de uma semana para a outra.
             Use apenas os tipos de exercício RUN, WALK ou BIKE.
             """;
+
+    private static final BigDecimal MAX_WEEKLY_INCREASE = new BigDecimal("1.1");
 
     private final ExerciseRepository exerciseRepository;
     private final ChatClient chatClient;
@@ -81,7 +88,7 @@ public class PlanService {
         UserLevel userLevel = calculateLevel(userId, request.type());
         String level = levelToPrompt(userLevel);
 
-        return chatClient.prompt()
+        TrainingPlanResponse plan = chatClient.prompt()
                 .user(u -> u.text("""
                     Meta: {type}, conseguir fazer {distance} km em um único treino.
                     Prazo: {weeks} semanas.
@@ -94,6 +101,48 @@ public class PlanService {
                         .param("level", level))
                 .call()
                 .entity(TrainingPlanResponse.class);
+
+        return enforceWeeklyProgression(plan, userLevel);
+    }
+
+    public static TrainingPlanResponse enforceWeeklyProgression(TrainingPlanResponse plan, UserLevel level) {
+        if (plan == null || plan.weeks() == null) {
+            return plan;
+        }
+
+        BigDecimal previousMax = level == null || level.isBeginner()
+                ? null
+                : BigDecimal.valueOf(level.maxDistanceKm());
+
+        List<PlanWeek> weeks = new ArrayList<>();
+        for (PlanWeek week : plan.weeks()) {
+            BigDecimal limit = previousMax == null ? null : previousMax.multiply(MAX_WEEKLY_INCREASE);
+            BigDecimal weekMax = null;
+
+            List<PlannedSession> sessions = new ArrayList<>();
+            for (PlannedSession session : week.sessions() == null ? List.<PlannedSession>of() : week.sessions()) {
+                if (session.targetDistanceKm() == null || session.targetDistanceKm() <= 0) {
+                    continue;
+                }
+
+                BigDecimal distance = BigDecimal.valueOf(session.targetDistanceKm());
+                if (limit != null && distance.compareTo(limit) > 0) {
+                    distance = limit.setScale(1, RoundingMode.FLOOR);
+                    session = new PlannedSession(session.type(), distance.doubleValue(),
+                            session.targetPace(), session.observation());
+                }
+
+                sessions.add(session);
+                weekMax = weekMax == null ? distance : weekMax.max(distance);
+            }
+
+            weeks.add(new PlanWeek(week.week(), sessions));
+            if (weekMax != null) {
+                previousMax = weekMax;
+            }
+        }
+
+        return new TrainingPlanResponse(plan.goal(), weeks);
     }
 
 }
