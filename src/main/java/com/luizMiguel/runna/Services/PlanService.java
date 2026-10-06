@@ -5,12 +5,14 @@ import com.luizMiguel.runna.DTOs.Plan.TrainingPlanResponse;
 import com.luizMiguel.runna.Models.ExerciseModel;
 import com.luizMiguel.runna.Repositories.ExerciseRepository;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Service
 public class PlanService {
 
     private static final String SYSTEM_PROMPT = """
