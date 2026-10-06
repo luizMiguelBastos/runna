@@ -94,6 +94,11 @@ public class PlanService {
                     Prazo: {weeks} semanas.
                     Nível atual: {level}
                     Monte um plano com exatamente {weeks} semanas, de 2 a 4 treinos por semana.
+                    Regras:
+                    - No campo goal, descreva a meta completa, por exemplo "Correr 5 km em 4 semanas".
+                    - Todas as sessões devem ter targetDistanceKm maior que zero.
+                    - O targetPace deve estar no formato M:SS, sem unidade, por exemplo "6:30".
+                    - Priorize sessões do tipo {type}. Use WALK apenas como treino de recuperação, sempre com distância.
                     """)
                         .param("type", request.type().name())
                         .param("distance", request.targetDistanceKm())
