@@ -29,8 +29,6 @@ public class AuthServiceTest {
     @InjectMocks
     private AuthService authService;
 
-
-
     @Test
     void deveRetornarTokenQuandoLoginValido (){
         UserModel user = new UserModel();
