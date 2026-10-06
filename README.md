@@ -204,7 +204,6 @@ Credenciais inválidas retornam a **mesma mensagem** tanto para usuário inexist
 
 ## Próximos passos
 
-- Testes automatizados (unitários e de integração)
 - Refresh token e revogação
 - Migrations versionadas com Flyway, no lugar do `ddl-auto: update`
 - Containerização com Docker
