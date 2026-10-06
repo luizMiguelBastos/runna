@@ -7,7 +7,9 @@ import com.luizMiguel.runna.DTOs.Plan.TrainingPlanResponse;
 import com.luizMiguel.runna.Models.ExerciseModel;
 import com.luizMiguel.runna.Repositories.ExerciseRepository;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,6 +18,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Service
 public class PlanService {
@@ -88,14 +91,13 @@ public class PlanService {
         UserLevel userLevel = calculateLevel(userId, request.type());
         String level = levelToPrompt(userLevel);
 
-        TrainingPlanResponse plan = chatClient.prompt()
+        TrainingPlanResponse plan = fetchPlanWithExpectedWeeks(() -> chatClient.prompt()
                 .user(u -> u.text("""
                     Meta: {type}, conseguir fazer {distance} km em um único treino.
                     Prazo: {weeks} semanas.
                     Nível atual: {level}
                     Monte um plano com exatamente {weeks} semanas, de 2 a 4 treinos por semana.
                     Regras:
-                    - No campo goal, descreva a meta completa, por exemplo "Correr 5 km em 4 semanas".
                     - Todas as sessões devem ter targetDistanceKm maior que zero.
                     - O targetPace deve estar no formato M:SS, sem unidade, por exemplo "6:30".
                     - Priorize sessões do tipo {type}. Use WALK apenas como treino de recuperação, sempre com distância.
@@ -105,9 +107,48 @@ public class PlanService {
                         .param("weeks", request.weeks())
                         .param("level", level))
                 .call()
-                .entity(TrainingPlanResponse.class);
+                .entity(TrainingPlanResponse.class), request.weeks());
 
-        return enforceWeeklyProgression(plan, userLevel);
+        TrainingPlanResponse adjusted = enforceWeeklyProgression(plan, userLevel);
+        return new TrainingPlanResponse(buildGoal(request), adjusted.weeks());
+    }
+
+    public static TrainingPlanResponse fetchPlanWithExpectedWeeks(Supplier<TrainingPlanResponse> call, int expectedWeeks) {
+        TrainingPlanResponse plan = call.get();
+        if (hasExpectedWeeks(plan, expectedWeeks)) {
+            return plan;
+        }
+
+        plan = call.get();
+        if (hasExpectedWeeks(plan, expectedWeeks)) {
+            return plan;
+        }
+
+        int received = plan == null || plan.weeks() == null ? 0 : plan.weeks().size();
+        throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                "A IA gerou um plano com %d semanas em vez de %d, mesmo após uma nova tentativa. Tente novamente."
+                        .formatted(received, expectedWeeks));
+    }
+
+    public static boolean hasExpectedWeeks(TrainingPlanResponse plan, int expectedWeeks) {
+        return plan != null && plan.weeks() != null && plan.weeks().size() == expectedWeeks;
+    }
+
+    public static String buildGoal(CreatePlanRequest request) {
+        String verb = switch (request.type()) {
+            case RUN -> "Correr";
+            case WALK -> "Caminhar";
+            case BIKE -> "Pedalar";
+        };
+
+        String distance = BigDecimal.valueOf(request.targetDistanceKm())
+                .stripTrailingZeros()
+                .toPlainString()
+                .replace('.', ',');
+
+        String weeks = request.weeks() == 1 ? "1 semana" : request.weeks() + " semanas";
+
+        return "%s %s km em %s".formatted(verb, distance, weeks);
     }
 
     public static TrainingPlanResponse enforceWeeklyProgression(TrainingPlanResponse plan, UserLevel level) {
